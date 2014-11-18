@@ -5,11 +5,15 @@ import Control.Applicative
 import Data.Monoid
 import Data.List(foldl')
 
-import Prelude hiding (foldl)
+import Prelude hiding (foldl, foldr)
 
 foldl :: (b -> a -> b) -> b -> [a] -> b
 foldl _ acc [] = acc
 foldl f acc (x:xs) = foldl f (f acc x) xs
+
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr f v [] = v
+foldr f v (x:xs) = f x (foldr f v xs)
 
 replicate' 0 _ = []
 replicate' n x = x : replicate (n-1) x
@@ -36,17 +40,17 @@ dropWhile' p (x:xs)
   | p x = dropWhile p xs
   | otherwise = x:xs
 
-dropWhile'' p = Prelude.foldr (\ x acc -> if p x then acc else x : acc) []
+dropWhile'' p = foldr (\ x acc -> if p x then acc else x : acc) []
 
 filter' :: (a -> Bool) -> [a] -> [a]
-filter' p = Prelude.foldr (\ x xs -> if p x then xs ++ [x] else xs) []
+filter' p = foldr (\ x xs -> if p x then xs ++ [x] else xs) []
 
 map' :: (a -> b) -> [a] -> [b]
 map' _ [] = []
 map' f (x:xs) = f x : (map f xs)
 
 map'' :: (a -> b) -> [a] -> [b]
-map'' f = Prelude.foldr (\x ys -> f x : ys) []
+map'' f = foldr (\x ys -> f x : ys) []
 
 map''' :: (a -> b) -> [a] -> [b]
 map''' f = foldl (\ys x -> f x : ys) []
@@ -80,10 +84,8 @@ mapx' f = unfold null (f . head) tail
 iterate' f = unfold (const False) id f
 
 compose :: [a -> a] -> (a -> a)
-compose = Prelude.foldr (.) id
+compose = foldr (.) id
 
 
 curry' f = \ x y -> f (x, y)
 uncurry' f = \ (x,y) -> f x y
-
-
