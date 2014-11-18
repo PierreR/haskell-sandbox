@@ -5,14 +5,16 @@ import Control.Applicative
 import Data.Monoid
 import Data.List(foldl')
 
-foldLeft :: (b -> a -> b) -> b -> [a] -> b
-foldLeft _ acc [] = acc
-foldLeft f acc (x:xs) = foldLeft f (f acc x) xs
+import Prelude hiding (foldl)
+
+foldl :: (b -> a -> b) -> b -> [a] -> b
+foldl _ acc [] = acc
+foldl f acc (x:xs) = foldl f (f acc x) xs
 
 replicate' 0 _ = []
 replicate' n x = x : replicate (n-1) x
 
-any' p xs = Prelude.foldl (\ x acc -> (p x) || acc) False xs
+any' p xs = foldl (\ x acc -> (p x) || acc) False xs
 
 all' p = foldr (&&) True . map p
 
@@ -27,7 +29,7 @@ and'' (x:xs) = and xs && x
 concat' [] = []
 concat' (xs:xss) = xs ++ concat' xss
 
-takeWhile' p = Prelude.foldl (\acc x -> if p x then x : acc else acc) []
+takeWhile' p = foldl (\acc x -> if p x then x : acc else acc) []
 
 dropWhile' _ [] = []
 dropWhile' p (x:xs)
@@ -47,9 +49,9 @@ map'' :: (a -> b) -> [a] -> [b]
 map'' f = Prelude.foldr (\x ys -> f x : ys) []
 
 map''' :: (a -> b) -> [a] -> [b]
-map''' f = Prelude.foldl (\ys x -> f x : ys) []
+map''' f = foldl (\ys x -> f x : ys) []
 
-dec2int = Prelude.foldl (\x y -> 10 * x + y) 0
+dec2int = foldl (\x y -> 10 * x + y) 0
 
 sum' :: [Int] -> Int
 sum' = foldl' (+) 0
