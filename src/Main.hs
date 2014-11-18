@@ -5,34 +5,9 @@ module Main where
 
 import           Control.Monad              (guard)
 import           Control.Monad.Trans.Either
-import           Data.Char                  (digitToInt)
+import           Data.Char                  (digitToInt, ord, chr, isLower, isUpper)
 import           Data.Either.Combinators
 import           Data.List                  (sort)
-import qualified Data.Yaml                  as Y
-
--- I import qualified so that it's clear which
--- functions are from the parsec library:
-import qualified Text.Parsec                as Parsec
-
--- I am the error message infix operator, used later:
-import           Text.Parsec                ((<?>))
-
--- Imported so we can play with applicative things later.
--- not qualified as mostly infix operators we'll be using.
-import           Control.Applicative
-
--- Get the Identity monad from here:
-import           Control.Monad.Identity     (Identity)
-
--- alias Parsec.parse for more concise usage in my examples:
-parse rule text = Parsec.parse rule "(source)" text
-
-myParser :: Parsec.Parsec String () (String,String)
-myParser = do
-    letters <- Parsec.many1 Parsec.letter
-    Parsec.spaces
-    digits <- Parsec.many1 Parsec.digit
-    return (letters,digits)
 
 qsort :: [Int] -> [Int]
 qsort [] = []
@@ -54,24 +29,28 @@ safeTail xs = if null xs then [] else tail xs
 
 trues a b = if a then if b then True else False else False
 
-products :: Int -> [Int]
-products n = [x | x <- [1 ..n], n `mod` x == 0]
+factors :: Int -> [Int]
+factors n = [x | x <- [1 ..n], n `mod` x == 0]
 
-products' n = do
+factors' n = do
     x <- [1..n]
     guard $ n `mod` x == 0
     return x
 
 perfects n = [x | x <- [1..n], isPerfect x]
-isPerfect num = sum (products num) == num
+isPerfect num = sum (factors num) == num
 
 -- this is equal to [(x,y) | x <- [1,2,3], y <- [4,5,6]]
 comprehension = concat [ [(x,y) | y <- [4,5,6]] | x <- [1,2,3]]
 
 isPrime :: Int -> Bool
-isPrime n = products n == [1,n]
+isPrime n = factors n == [1,n]
 
 primes = [ x | x <- [1..], isPrime x]
+
+factorial :: Int -> Int
+factorial 0 = 1
+factorial n = n * factorial (n-1)
 
 riffle xs ys = concat [[x,y] | (x,y) <- xs `zip` ys]
 
@@ -83,6 +62,19 @@ positions x xs = find' x (zip xs [0..n])
 
 scalarproduct xs ys = sum [x * y | (x,y) <- xs `zip` ys]
 
+let2int :: Char -> Int
+let2int c = ord c - ord 'a'
+
+int2let n = chr (ord 'a' + n)
+
+shift n c
+    | isLower c = int2let ((let2int c + n) `mod` 26)
+    | isUpper c = chr (ord 'A' + ((ord c - ord 'A' + n) `mod` 26))
+    | otherwise = c
+
+
+encode n xs = [shift n x | x <- xs]
+
 main :: IO ()
 main = do
-    print $ scalarproduct [1,2,3] [4,5,6]
+    print $ encode 13 "Think like a Fundamentalist Code like a Hacker"
