@@ -1,5 +1,5 @@
 module Parsing where
-
+import Text.ParserCombinators.Parsec
 -- I import qualified so that it's clear which
 -- functions are from the parsec library:
 import qualified Text.Parsec                as Parsec
@@ -23,3 +23,6 @@ myParser = do
     Parsec.spaces
     digits <- Parsec.many1 Parsec.digit
     return (letters,digits)
+
+integer :: Parser Int
+integer = read <$> many1 digit

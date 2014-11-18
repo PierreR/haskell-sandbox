@@ -2,18 +2,8 @@ module HOF where
 
 import Control.Monad
 import Control.Applicative
-import Text.ParserCombinators.Parsec
 import Data.Monoid
 import Data.List(foldl')
-
-import Data.Foldable (Foldable)
-import qualified Data.Foldable as F
-import qualified Control.Foldl as L
-
-fold'' :: Data.Foldable.Foldable f => L.Fold a b -> f a -> b
-fold'' (L.Fold step begin done) as = F.foldr cons done as begin
-  where
-    cons a k x = k $! step x a
 
 foldLeft :: (b -> a -> b) -> b -> [a] -> b
 foldLeft _ acc [] = acc
@@ -74,15 +64,7 @@ iterate' f = unfold (const False) id f
 compose :: [a -> a] -> (a -> a)
 compose = Prelude.foldr (.) id
 
-all' p = Prelude.foldr (&&) True . map p
-
-sum'' :: (Foldable t, Num a) => t a -> a
-sum''  = getSum . foldMap' Sum
-          where
-            foldMap' :: (Monoid m, Foldable t) => (a -> m) -> t a -> m
-            foldMap' f = F.foldr (mappend . f) mempty
-integer :: Parser Int
-integer = read <$> many1 digit
+all' p = foldr (&&) True . map p
 
 curry' f = \ x y -> f (x, y)
 uncurry' f = \ (x,y) -> f x y
