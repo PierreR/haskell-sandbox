@@ -9,7 +9,23 @@ foldLeft :: (b -> a -> b) -> b -> [a] -> b
 foldLeft _ acc [] = acc
 foldLeft f acc (x:xs) = foldLeft f (f acc x) xs
 
+replicate' 0 _ = []
+replicate' n x = x : replicate (n-1) x
+
 any' p xs = Prelude.foldl (\ x acc -> (p x) || acc) False xs
+
+all' p = foldr (&&) True . map p
+
+and' [] = True
+and' (x:xs)
+  | x == False = False
+  | otherwise = and xs
+
+and'' [] = True
+and'' (x:xs) = and xs && x
+
+concat' [] = []
+concat' (xs:xss) = xs ++ concat' xss
 
 takeWhile' p = Prelude.foldl (\acc x -> if p x then x : acc else acc) []
 
@@ -64,7 +80,6 @@ iterate' f = unfold (const False) id f
 compose :: [a -> a] -> (a -> a)
 compose = Prelude.foldr (.) id
 
-all' p = foldr (&&) True . map p
 
 curry' f = \ x y -> f (x, y)
 uncurry' f = \ (x,y) -> f x y
