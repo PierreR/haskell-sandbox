@@ -52,6 +52,9 @@ map' f (x:xs) = f x : (map f xs)
 map'' :: (a -> b) -> [a] -> [b]
 map'' f = foldr (\x ys -> f x : ys) []
 
+-- An implementation with foldl would be broken ...
+-- First it won't terminate with an infinite list
+-- And as is, it will flip the order of the list
 map''' :: (a -> b) -> [a] -> [b]
 map''' f = foldl (\ys x -> f x : ys) []
 
