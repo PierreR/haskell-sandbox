@@ -12,7 +12,7 @@ foldl _ acc [] = acc
 foldl f acc (x:xs) = foldl f (f acc x) xs
 
 foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr f v [] = v
+foldr _  v [] = v
 foldr f v (x:xs) = f x (foldr f v xs)
 
 replicate' 0 _ = []
