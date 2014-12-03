@@ -4,16 +4,14 @@
 module Main where
 
 import           Control.Monad              (guard)
-import           Control.Monad.Trans.Either
 import           Data.Char                  (digitToInt, ord, chr, isLower, isUpper)
-import           Data.Either.Combinators
 import           Data.List                  (sort)
 
 qsort :: [Int] -> [Int]
 qsort [] = []
 qsort (x:xs) = qsort larger ++ [x] ++ smaller
     where smaller = filter (< x) xs
-          larger = filter (>=x) xs
+          larger  = filter (>=x) xs
 
 --digitize :: Integer -> [Integer]
 digitize i = map digitToInt (sort $ show i)
