@@ -1,6 +1,7 @@
 module Countdown where
 
 import           Control.Monad (guard)
+import           Data.List     (permutations)
 import           Data.Monoid   ((<>))
 
 data Expr = Val Int
@@ -37,10 +38,5 @@ eval (App o l r) = [apply o x y | x <- eval l
                                 , y <- eval r
                                 , valid o x y]
 
-choices :: [a] -> [[a]]
-choices [] = [[]]
-choices l@(x:xs) = [x] : [x:[y] | y <- l] <> choices xs
-  -- y' <- l
-  -- (x:[y']):(choices xs)
-
-  --[ x:[y] | y <- xs]
+choices :: Ord a =>[a] -> [[a]]
+choices xs =  [[]] <> [[x]| x <- xs] <> (permutations xs)
