@@ -6,11 +6,13 @@ import           Data.Monoid   ((<>))
 
 data Expr = Val Int
           | App Op Expr Expr
+          deriving Show
 
 data Op = Add
         | Sub
         | Mul
         | Div
+        deriving Show
 
 apply :: Op -> Int -> Int -> Int
 apply Add x y = x + y
@@ -39,4 +41,18 @@ eval (App o l r) = [apply o x y | x <- eval l
                                 , valid o x y]
 
 choices :: Ord a =>[a] -> [[a]]
-choices xs =  [[]] <> [[x]| x <- xs] <> (permutations xs)
+choices [] = [[]]
+choices [x] = [] : [[x]]
+choices l@(x:xs) = [x] : [xs' | xs' <- permutations l] <> choices xs
+
+split :: [a] -> [([a],[a])]
+split = undefined
+
+
+values :: Expr -> [Int]
+values (Val n) = [n]
+values (App _ l r) = values l <> values r
+
+solution :: Expr -> [Int] -> Int -> Bool
+solution e ns n = elem (values e) (choices ns)
+               && eval e == [n]
