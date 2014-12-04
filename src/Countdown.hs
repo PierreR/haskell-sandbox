@@ -74,3 +74,8 @@ values (App _ l r) = values l <> values r
 solution :: Expr -> [Int] -> Int -> Bool
 solution e ns n = elem (values e) (choices ns)
                && eval e == [n]
+
+solutions :: [Int] -> Int -> [Expr]
+solutions ns n = [e | ns' <- choices ns
+                    , e   <- exprs ns'
+                    , eval e == return n]
