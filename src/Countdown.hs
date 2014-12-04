@@ -40,7 +40,7 @@ eval (Val n) = [n | n > 0]
 eval (App o l r) = [apply o x y | x <- eval l
                                 , y <- eval r
                                 , valid o x y]
-
+-- TODO: Clean it up
 choices :: Ord a => [a] -> [[a]]
 choices xs = go xs []
    where
@@ -79,3 +79,13 @@ solutions :: [Int] -> Int -> [Expr]
 solutions ns n = [e | ns' <- choices ns
                     , e   <- exprs ns'
                     , eval e == return n]
+
+-- testing
+
+testExprS = App Mul (App Sub (Val 25) (Val 10)) (App Add (Val 50) (Val 1))
+
+inputNumbers :: [Int]
+inputNumbers = [1,3,7,10,25,50]
+
+oneSol :: Int
+oneSol = 765
