@@ -41,7 +41,7 @@ eval (App o l r) = [apply o x y | x <- eval l
                                 , y <- eval r
                                 , valid o x y]
 
-choices :: Ord a =>[a] -> [[a]]
+choices :: Ord a => [a] -> [[a]]
 choices xs = go xs []
    where
      go [] _ = [[]]
@@ -56,6 +56,16 @@ choices xs = go xs []
 split :: [a] -> [([a],[a])]
 split = undefined
 
+exprs :: [Int] -> [Expr]
+exprs []  =  []
+exprs [n] =  [Val n]
+exprs ns  =  [e | (ls,rs) <- split ns
+                 , l      <- exprs ls
+                 , r      <- exprs rs
+                 , e      <- combine l r]
+
+combine :: Expr -> Expr -> [Expr]
+combine l r = [ App o l r | o <- [Add, Sub, Mul, Div]]
 
 values :: Expr -> [Int]
 values (Val n) = [n]
