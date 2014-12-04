@@ -1,6 +1,7 @@
 module Countdown where
 
 import           Control.Monad (guard)
+import           Control.Monad (join)
 import           Data.List     (permutations)
 import           Data.Monoid   ((<>))
 
@@ -41,9 +42,16 @@ eval (App o l r) = [apply o x y | x <- eval l
                                 , valid o x y]
 
 choices :: Ord a =>[a] -> [[a]]
-choices [] = [[]]
-choices [x] = [] : [[x]]
-choices l@(x:xs) = [x] : [xs' | xs' <- permutations l] <> choices xs
+choices xs = go xs []
+   where
+     go [] _ = [[]]
+     go [x] _ = [] : [[x]]
+     go l@(y:ys) done = extraperm l done <> permutations l  <> go ys (y:done)
+
+     extraperm :: [a] -> [a] -> [[a]]
+     extraperm (z:_) [] = [[z]]
+     extraperm (z:zs) (w:ws) = permutations (w:zs) <> extraperm (z:zs) ws
+
 
 split :: [a] -> [([a],[a])]
 split = undefined
