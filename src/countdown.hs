@@ -1,8 +1,7 @@
-module Countdown where
+module Main where
 
 import           Control.Monad (guard)
-import           Control.Monad (join)
-import           Data.List     (permutations)
+import qualified Data.List     as List
 import           Data.Monoid   ((<>))
 
 data Expr = Val Int
@@ -46,15 +45,19 @@ choices xs = go xs []
    where
      go [] _ = [[]]
      go [x] _ = [] : [[x]]
-     go l@(y:ys) done = extraperm l done <> permutations l  <> go ys (y:done)
+     go l@(y:ys) done = extraperm l done <> List.permutations l  <> go ys (y:done)
 
      extraperm :: [a] -> [a] -> [[a]]
      extraperm (z:_) [] = [[z]]
-     extraperm (z:zs) (w:ws) = permutations (w:zs) <> extraperm (z:zs) ws
+     extraperm (z:zs) (w:ws) = List.permutations (w:zs) <> extraperm (z:zs) ws
 
 
 split :: [a] -> [([a],[a])]
-split = undefined
+split [] = error "splitting empty list make no sense"
+split (x:xs) = go [x] xs
+  where
+    go z [y] = [(z,[y])]
+    go z l@(y:ys) = (z, l) : go (z <> [y]) ys
 
 exprs :: [Int] -> [Expr]
 exprs []  =  []
@@ -64,8 +67,22 @@ exprs ns  =  [e | (ls,rs) <- split ns
                  , r      <- exprs rs
                  , e      <- combine l r]
 
+type Result = (Expr, Int)
+
+results :: [Int] -> [Result]
+results []  =  []
+results [n] =  [(Val n, n) | n > 0]
+results ns  =  [ res | (ls,rs) <- split ns
+               , lx            <- results ls
+               , ry            <- results rs
+               , res           <- combine' lx ry]
+
 combine :: Expr -> Expr -> [Expr]
 combine l r = [ App o l r | o <- [Add, Sub, Mul, Div]]
+
+combine' :: Result -> Result -> [Result]
+combine' (l, x) (r, y) = [ (App o l r, apply o x y ) | o <- [Add, Sub, Mul, Div]
+                                          , valid o x y ]
 
 values :: Expr -> [Int]
 values (Val n) = [n]
@@ -75,17 +92,25 @@ solution :: Expr -> [Int] -> Int -> Bool
 solution e ns n = elem (values e) (choices ns)
                && eval e == [n]
 
+solutions' :: [Int] -> Int -> [Expr]
+solutions' ns n = [e | ns'      <- choices ns
+                     , (e, m)   <- results ns'
+                     , m == n]
+
 solutions :: [Int] -> Int -> [Expr]
 solutions ns n = [e | ns' <- choices ns
                     , e   <- exprs ns'
                     , eval e == return n]
 
 -- testing
-
-testExprS = App Mul (App Sub (Val 25) (Val 10)) (App Add (Val 50) (Val 1))
+solExprs_1 = App Mul (App Sub (Val 25) (Val 10)) (App Add (Val 50) (Val 1))
+solExprs_2 = App Mul (App Sub (App Add (Val 7) (Val 3)) (Val 1)) (App Add (Val 25) (App Add (Val 50) (Val 10)))
 
 inputNumbers :: [Int]
 inputNumbers = [1,3,7,10,25,50]
 
-oneSol :: Int
-oneSol = 765
+target :: Int
+target = 765
+
+main =
+  print $ solutions' inputNumbers target

@@ -16,7 +16,7 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 executable haskell-sandbox
-  main-is: Main.hs
+  main-is: countdown.hs
   -- other-modules:
   other-extensions:    DeriveGeneric, PatternGuards, FlexibleContexts, FlexibleInstances, CPP, DeriveDataTypeable, MultiParamTypeClasses, ScopedTypeVariables, OverloadedStrings
   build-depends:       base >=4.7 && <4.8,
