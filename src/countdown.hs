@@ -6,13 +6,23 @@ import           Data.Monoid   ((<>))
 
 data Expr = Val Int
           | App Op Expr Expr
-          deriving Show
 
+instance Show Expr where
+   show (Val n)               =  show n
+   show (App o l r)           =  bracket l ++ show o ++ bracket r
+                                 where
+                                    bracket (Val n) = show n
+                                    bracket e       = "(" ++ show e ++ ")"
 data Op = Add
         | Sub
         | Mul
         | Div
-        deriving Show
+
+instance Show Op where
+   show Add                   =  "+"
+   show Sub                   =  "-"
+   show Mul                   =  "*"
+   show Div                   =  "/"
 
 apply :: Op -> Int -> Int -> Int
 apply Add x y = x + y
@@ -21,10 +31,10 @@ apply Mul x y = x * y
 apply Div x y = x `div` y
 
 valid :: Op -> Int -> Int -> Bool
-valid Add _ _ = True
+valid Add x y = x <= y
 valid Sub x y = x > y
-valid Mul _ _ = True
-valid Div x y = x `mod` y == 0
+valid Mul x y = x <= y && x /= 1 && y /= 1
+valid Div x y = x `mod` y == 0 && y /= 1
 
 -- eval :: Expr -> Maybe Int
 -- eval (Val n) = if n > 0 then Just n else Nothing
@@ -82,7 +92,8 @@ combine l r = [ App o l r | o <- [Add, Sub, Mul, Div]]
 
 combine' :: Result -> Result -> [Result]
 combine' (l, x) (r, y) = [ (App o l r, apply o x y ) | o <- [Add, Sub, Mul, Div]
-                                          , valid o x y ]
+                                                     , valid o x y ]
+
 
 values :: Expr -> [Int]
 values (Val n) = [n]
@@ -113,4 +124,4 @@ target :: Int
 target = 765
 
 main =
-  print $ solutions' inputNumbers target
+  mapM print $ solutions' inputNumbers target
