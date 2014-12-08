@@ -49,6 +49,20 @@ eval (Val n) = [n | n > 0]
 eval (App o l r) = [apply o x y | x <- eval l
                                 , y <- eval r
                                 , valid o x y]
+
+subs :: [a] -> [[a]]
+subs []     =  [[]]
+subs (x:xs) =  yss ++ map (x:) yss
+  where yss = subs xs
+
+interleave :: a -> [a] -> [[a]]
+interleave x []     = [[x]]
+interleave x (y:ys) = (x:y:ys) : map (y:) (interleave x ys)
+
+perms :: [a] -> [[a]]
+perms []     =  [[]]
+perms (x:xs) =  concat (map (interleave x) (perms xs))
+
 -- TODO: Clean it up
 choices :: Ord a => [a] -> [[a]]
 choices xs = go xs []
@@ -63,11 +77,16 @@ choices xs = go xs []
 
 
 split :: [a] -> [([a],[a])]
-split [] = error "splitting empty list make no sense"
+split [] = []
 split (x:xs) = go [x] xs
   where
     go z [y] = [(z,[y])]
     go z l@(y:ys) = (z, l) : go (z <> [y]) ys
+
+-- Much more clever ...
+split' :: [a] -> [([a],[a])]
+split' [] = []
+split' (x:xs) = ([x], xs) :[(x:ls, rs) | (ls, rs) <- split xs]
 
 exprs :: [Int] -> [Expr]
 exprs []  =  []
@@ -122,6 +141,15 @@ inputNumbers = [1,3,7,10,25,50]
 
 target :: Int
 target = 765
+
+removeone :: Eq a => a -> [a] -> [a]
+removeone _ [] = []
+removeone x (y:ys) = if x == y then ys else y: removeone x ys
+
+isChoice :: Eq a => [a] -> [a] -> Bool
+isChoice [] _ = True
+isChoice (x : xs) [] = False
+isChoice (x : xs) ys = elem x ys && isChoice xs (removeone x ys)
 
 main =
   mapM print $ solutions' inputNumbers target
