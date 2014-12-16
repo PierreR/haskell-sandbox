@@ -47,10 +47,10 @@ atom ma = Concurrent (\k -> Atom (ma >>= \a -> return $ k a))
 -- ===================================
 
 fork :: Concurrent a -> Concurrent ()
-fork = error "You have to implement fork"
+fork (Concurrent f) = Concurrent $ \c -> c ()
 
 par :: Concurrent a -> Concurrent a -> Concurrent a
-par = error "You have to implement par"
+par (Concurrent f) (Concurrent g) = Concurrent $ \k -> Fork (f k) (g k)
 
 
 -- ===================================
