@@ -56,10 +56,15 @@ par (Concurrent f) (Concurrent g) = Concurrent $ \k -> Fork (f k) (g k)
 -- ===================================
 -- Ex. 4
 -- ===================================
+bind :: ((a -> Action) -> Action) -> (a -> ((b -> Action) -> Action)) -> ((b -> Action) -> Action)
+bind f g = \k -> f (\a -> (g a) k)
+
+bind' :: Concurrent a -> (a -> ((b -> Action) -> Action)) -> Concurrent b
+bind' (Concurrent f) g = Concurrent $ \k -> f (\a -> (g a) k)
 
 instance Monad Concurrent where
-    (Concurrent f) >>= g = error "You have to implement >>="
-    return x = Concurrent (\c -> c x)
+    (Concurrent f) >>= g = Concurrent $ \k -> f (\a -> unwrap (g a) k)
+    return x = Concurrent (\k -> k x)
 
 
 -- ===================================
