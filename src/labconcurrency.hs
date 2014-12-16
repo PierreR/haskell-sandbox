@@ -1,10 +1,12 @@
-module Lab5 where
+module Main where
 
-import Control.Monad
+import           Control.Monad
 
-data Concurrent a = Concurrent ((a -> Action) -> Action)
+newtype Concurrent a = Concurrent {
+  unwrap :: (a -> Action) -> Action
+}
 
-data Action 
+data Action
     = Atom (IO Action)
     | Fork Action Action
     | Stop
@@ -17,25 +19,27 @@ instance Show Action where
 -- ===================================
 -- Ex. 0
 -- ===================================
-
+-- | we use Stop to create the continuation that is provided to f
 action :: Concurrent a -> Action
-action = error "You have to implement action"
+action (Concurrent f) = f (\_ -> Stop)
 
 
 -- ===================================
 -- Ex. 1
 -- ===================================
-
+-- | we disregard any continuation and return Stop as the Action
 stop :: Concurrent a
-stop = error "You have to implement stop"
+stop = Concurrent (\k -> Stop)
 
 
 -- ===================================
 -- Ex. 2
 -- ===================================
+atom':: IO a -> ((a -> Action) -> Action)
+atom' ma = \k -> Atom (ma >>= (\a -> return $ k a))
 
 atom :: IO a -> Concurrent a
-atom = error "You have to implement atom"
+atom ma = Concurrent (\k -> Atom (ma >>= \a -> return $ k a))
 
 
 -- ===================================
@@ -74,7 +78,7 @@ ex0 = par (loop (genRandom 1337)) (loop (genRandom 2600) >> atom (putStrLn ""))
 
 ex1 :: Concurrent ()
 ex1 = do atom (putStr "Haskell")
-         fork (loop $ genRandom 7331) 
+         fork (loop $ genRandom 7331)
          loop $ genRandom 42
          atom (putStrLn "")
 
@@ -95,3 +99,4 @@ genRandom 42   = [71, 71, 17, 14, 16, 91, 18, 71, 58, 75]
 loop :: [Int] -> Concurrent ()
 loop xs = mapM_ (atom . putStr . show) xs
 
+main = undefined
