@@ -47,7 +47,7 @@ atom ma = Concurrent (\k -> Atom (ma >>= \a -> return $ k a))
 -- ===================================
 
 fork :: Concurrent a -> Concurrent ()
-fork (Concurrent f) = Concurrent $ \c -> c ()
+fork f = Concurrent $ \_ -> action f
 
 par :: Concurrent a -> Concurrent a -> Concurrent a
 par (Concurrent f) (Concurrent g) = Concurrent $ \k -> Fork (f k) (g k)
@@ -72,7 +72,13 @@ instance Monad Concurrent where
 -- ===================================
 
 roundRobin :: [Action] -> IO ()
-roundRobin = error "You have to implement roundRobin"
+roundRobin [] = return ()
+roundRobin (x:xs) = case x of
+                         Stop -> roundRobin xs
+                         Fork r l -> undefined
+                         Atom ioa -> do
+                           a <- ioa
+                           roundRobin (xs ++ [action (atom ioa)])
 
 -- ===================================
 -- Tests
