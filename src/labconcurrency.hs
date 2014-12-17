@@ -21,7 +21,7 @@ instance Show Action where
 -- ===================================
 -- | we use Stop to create the continuation that is provided to f
 action :: Concurrent a -> Action
-action (Concurrent f) = f (\_ -> Stop)
+action (Concurrent f) = f (const Stop)
 
 
 -- ===================================
@@ -41,13 +41,16 @@ atom' ma = \k -> Atom (ma >>= (\a -> return $ k a))
 atom :: IO a -> Concurrent a
 atom ma = Concurrent (\k -> Atom (ma >>= \a -> return $ k a))
 
-
 -- ===================================
 -- Ex. 3
 -- ===================================
-
 fork :: Concurrent a -> Concurrent ()
-fork f = Concurrent $ \_ -> action f
+fork f = Concurrent $ \k -> Fork (action f) (k ())
+
+--fork' :: (a -> Action) -> Action -> ((() -> Action) -> Action)
+--fork' k ma  =  action g $ k ()
+-- fork' f = \k' -> f  (\k -> k' ())
+--fork f = Concurrent $ \k -> k ()
 
 par :: Concurrent a -> Concurrent a -> Concurrent a
 par (Concurrent f) (Concurrent g) = Concurrent $ \k -> Fork (f k) (g k)
@@ -57,7 +60,7 @@ par (Concurrent f) (Concurrent g) = Concurrent $ \k -> Fork (f k) (g k)
 -- Ex. 4
 -- ===================================
 bind :: ((a -> Action) -> Action) -> (a -> ((b -> Action) -> Action)) -> ((b -> Action) -> Action)
-bind f g = \k -> f (\a -> (g a) k)
+bind f g = \k -> f $ \a -> (g a) k
 
 bind' :: Concurrent a -> (a -> ((b -> Action) -> Action)) -> Concurrent b
 bind' (Concurrent f) g = Concurrent $ \k -> f (\a -> (g a) k)
@@ -73,13 +76,18 @@ instance Monad Concurrent where
 
 roundRobin :: [Action] -> IO ()
 roundRobin [] = return ()
+roundRobin [x] = case x of
+  Stop -> return ()
+  Atom ioa -> ioa >> return ()
+  Fork r l -> undefined
 roundRobin (x:xs) = case x of
                          Stop -> roundRobin xs
                          Fork r l -> undefined
-                         Atom ioa -> do
-                           a <- ioa
-                           roundRobin (xs ++ [action (atom ioa)])
+                         Atom ioa -> roundRobin (xs ++ [action (atom ioa)])
 
+runA :: Action -> IO ()
+runA (Atom ioa) = ioa >> return ()
+runA _ = undefined
 -- ===================================
 -- Tests
 -- ===================================
@@ -89,9 +97,9 @@ ex0 = par (loop (genRandom 1337)) (loop (genRandom 2600) >> atom (putStrLn ""))
 
 ex1 :: Concurrent ()
 ex1 = do atom (putStr "Haskell")
-         fork (loop $ genRandom 7331)
+         -- fork (loop $ genRandom 7331)
          loop $ genRandom 42
-         atom (putStrLn "")
+         atom (putStrLn "World")
 
 
 -- ===================================
