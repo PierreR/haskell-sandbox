@@ -47,11 +47,6 @@ atom ma = Concurrent (\k -> Atom (ma >>= \a -> return $ k a))
 fork :: Concurrent a -> Concurrent ()
 fork f = Concurrent $ \k -> Fork (action f) (k ())
 
---fork' :: (a -> Action) -> Action -> ((() -> Action) -> Action)
---fork' k ma  =  action g $ k ()
--- fork' f = \k' -> f  (\k -> k' ())
---fork f = Concurrent $ \k -> k ()
-
 par :: Concurrent a -> Concurrent a -> Concurrent a
 par (Concurrent f) (Concurrent g) = Concurrent $ \k -> Fork (f k) (g k)
 
